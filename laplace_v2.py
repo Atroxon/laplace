@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import copy
 
-test_files = ['images/1.jpeg']
+test_files = ['images/3.jpeg']
 
 AVG_kernel = np.array([[1,1,1],[1,1,1],[1,1,1]])
 L_kernel = np.array([[0,1,0],[1,-4,1],[0,1,0]])
@@ -14,6 +14,7 @@ def main():
     open_imgs = import_images(paths=test_files)
 
     derivatives = list()
+    # First kernel
     for img in open_imgs:
         average_matrix = convolution_2D(img, AVG_kernel)
         laplace_matrix = convolution_2D(average_matrix, L_kernel)
@@ -21,8 +22,19 @@ def main():
         normalized_matrix = min_max(absolute_matrix,(0,255))
         derivatives.append(normalized_matrix)
 
-    for i in range(len(open_imgs)):
-        plot_derivatives(open_imgs[i],derivatives[i])
+    # for i in range(len(open_imgs)):
+    #     plot_derivatives(open_imgs[i],derivatives[i])
+    
+    # Second kernel
+    for img in open_imgs:
+        average_matrix = convolution_2D(img, AVG_kernel)
+        laplace_matrix = convolution_2D(average_matrix, E_kernel)
+        absolute_matrix = absolute(laplace_matrix)
+        normalized_matrix = min_max(absolute_matrix,(0,255))
+        derivatives.append(normalized_matrix)
+
+    plot_derivatives(open_imgs[0],derivatives[0])
+    plot_derivatives2(open_imgs[0],derivatives[1])
     
     plt.show()
 
@@ -44,6 +56,7 @@ def import_images(paths=None):
     for path in paths:
         imgs.append(cv.imread(path, cv.IMREAD_GRAYSCALE))
     return imgs
+
 
 def convolution_2D(image, kernel, padding=0, strides=1): #Add strides
     print(image)
@@ -82,6 +95,7 @@ def convolution_2D(image, kernel, padding=0, strides=1): #Add strides
 
     return out_matrix
 
+
 def plot_derivatives(image, matrix):
     popFig,popAxs=plt.subplots(1,2)
     popFig.suptitle("Grayscale ")
@@ -90,19 +104,14 @@ def plot_derivatives(image, matrix):
     popAxs[1].imshow(matrix, cmap='gray')
     return
 
-def normalize(matrix, boundaries):
-    LBound, UBound = boundaries
-    m = matrix.min()
-    M = matrix.max()
+def plot_derivatives2(image, matrix):
+    ppFig,ppAxs=plt.subplots(1,2)
+    ppFig.suptitle("Grayscale ")
+    
+    ppAxs[0].imshow(image, cmap='gray')
+    ppAxs[1].imshow(matrix, cmap='gray')
+    return
 
-    normalized = np.zeros((matrix.shape[0],matrix.shape[1]), np.int16)
-
-    for x in range(matrix.shape[0]):
-        for y in range(matrix.shape[1]):
-            pin = matrix[x,y]
-            pout = (pin-m)*((UBound-LBound)/(M-m))
-            normalized[x,y] = pout
-    return normalized
 
 def absolute(matrix):
     absolute_matrix = np.zeros((matrix.shape[0],matrix.shape[1]), np.int16)
@@ -110,6 +119,7 @@ def absolute(matrix):
         for y in range(matrix.shape[1]):
             absolute_matrix[x,y] = abs(matrix[x,y])    
     return absolute_matrix
+
 
 def min_max(matrix, boundaries):
     LBound, UBound = boundaries
@@ -124,17 +134,6 @@ def min_max(matrix, boundaries):
             normalized[x,y] = (matrix[x,y]-LBound)*(UBound-LBound)/(M-m) # todo eso +LBound
     print(normalized)
     return normalized
-
-def dummy():
-    out = np.zeros((10,10), np.int16)
-    for x in range(out.shape[0]):
-        for y in range(out.shape[1]):
-            if y < out.shape[0]//2:
-                val = 100
-            else:
-                val = 150
-            out[x,y]=val
-    return out
 
 
 
